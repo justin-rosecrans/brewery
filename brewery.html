@@ -1,0 +1,121 @@
+<html>
+	<head>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+		<script type="text/javascript">
+
+			// Grab the API endpoint
+			var beerProductsURL = "http://ontariobeerapi.ca/beers/?format=jsonp";
+
+			// Set the request properties.
+			var request = $.ajax({
+                    crossDomain: true,
+                    jsonp: "callback",
+                    dataType: "jsonp",
+                    method: "GET",
+                    url: beerProductsURL
+            });
+
+           	request.always( function( data ) {
+            	console.log( "API call was successful");
+
+            	/**
+            	 * Adds a rating scale ( 1-5 ) for each row within the table.
+            	 */
+            	function addRating( num ) {
+  					for( var i=1; i<= 5; i++ ) {
+  						$( '.beerRating-' + num ).append($("<option></option>").attr("value",i).text(i)); 
+  					}
+
+  					return;
+            	}
+
+            	// Prints out all the names of the beers
+            	_.each( data, function( beerData, i ) {
+
+            		// Creates table column and row for the beer names and brewer names.
+            		// Add a rating scale on the end ( 1-5 ).
+            		// Increments each row by 1 within the beer rating class.
+            		$( "<tr class='row'><td>" + beerData.name + "</td><td>" + beerData.brewer + "</td><td>" + beerData.type + "</td>" 
+            			+ "<td><select class=beerRating-" + i + "></select></td>" + "</tr>" ).appendTo( ".table" );
+
+            		// Add the rating scale to each beer name.
+            		addRating(i);
+            	});
+            });
+
+            request.fail(function( jqXHR, textStatus ) {
+                console.error( "API Response Failed and returns an error of", textStatus );
+            });
+
+		</script>
+		<style type="text/css">
+			table {
+				width: 50%;
+			}
+			th {
+			    text-align: -webkit-left;
+			    line-height: 3;
+    			color: #33e;
+			}
+		</style>
+	</head>
+	<body>
+		<section>
+			<h1> Ontario Beer API </h1>
+			<!-- Used form to allow both the enter key within the input box and button to submit when clicked. -->
+			<form>
+			<input type="text" class="filterNum"></input>
+			<button>Filter by Beer Rating</button>
+			<button class="showAll">Show All Beers</button>
+			</form>
+			<table>
+				<thead>
+					<tr>
+						<th> Beer Name </th>
+						<th> Brewer </th>
+						<th> Style </th>
+						<th> Rate the Beer ( 1-5 ) </th>
+					</tr>
+				</thead>
+				<tbody class="table"></tbody>
+			</table>
+		</section>
+
+		<script type="text/javascript">
+			// Attach an event to the button of Filter by Beer Rating.
+			$( "form" ).submit( function() {
+				// Get the value of the number in the input.
+				var mainNum = $(".filterNum").val(),
+					tables = $( "table").find( "tr" ).length;
+
+				// Iterate through all the tables to search for rows with the mainNum.
+				for( var i =0; i <= tables; i++ ) {
+					
+					// If mainNum is not equal to the beerRating, it will hide the entire row from
+					// the table.
+					// parent().parent() in this case is the <td> then <tr>.
+					mainNum !== $(".beerRating-" + i ).val() ?
+						$(".beerRating-" + i ).parent().parent().hide() :
+						$(".beerRating-" + i ).parent().parent().show();
+				}
+
+				// Prevent the form from submitting, stopping a re-render of the page.
+				return false;
+			});
+
+			// This shows all the beers again and the rating it was assigned by the user.
+			$( "button.showAll" ).on( "click", function() { 
+				var tables = $( "table").find( "tr" ).length;
+
+				// Iterate through all the tables to search for rows with the mainNum.
+				for( var i =0; i <= tables; i++ ) {
+					$(".beerRating-" + i ).parent().parent().show();
+				}
+
+				// Prevent the form from submitting, stopping a re-render of the page.
+				return false;
+			});
+		</script>
+	</body>
+</html>
